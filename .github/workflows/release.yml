@@ -1,0 +1,33 @@
+name: GSLsmp-resource-pack-release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build zip
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          zip -r "../GSLsmp-resource-pack-$TAG.zip" . \
+            -x ".git/*" ".github/*" ".gitignore" "README.md" "*.psd"
+          mv "../GSLsmp-resource-pack-$TAG.zip" .
+          cp "GSLsmp-resource-pack-$TAG.zip" GSLsmp-resource-pack.zip
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$TAG" \
+            "GSLsmp-resource-pack-$TAG.zip" \
+            GSLsmp-resource-pack.zip \
+            --clobber
